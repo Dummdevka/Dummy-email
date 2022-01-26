@@ -40,7 +40,49 @@ add_action('admin_menu', function() {
     // Load the JS conditionally
     add_action( 'load-' . $email_form, 'load_ajax' );
 });
-
+//Replacements
+function de_replace_html( $message ) {
+    $replacements = [
+        //Bold header
+        '[bold]' => '<h1>',
+        '[/bold]' => '</h1>',
+        //Semi bold header
+        '[semi]' => '<h3>',
+        '[/semi]' => '</h3>',
+        //Italic
+        '[it]' => '<i>',
+        '[/it]' => '</i>',
+        //Red
+        '[red]' => '<p style="color:#CA0B00">',
+        '[/red]' => '</p>',
+        //Green
+        '[gr]' => '<p style="color:#4BCA81">',
+        '[/gr]' => '</p>',
+        //Btn
+        '[btn]' => '<button style="min-height:40px;min-width:90px;border-radius:4px;background-color:#F0D500;border:none;color:black;">',
+        '[/btn]' => '</button>',
+    ];
+    $message = str_replace( array_keys( $replacements), array_values( $replacements ), $message );
+    return $message;
+}
+//Replace user data
+function de_replace_user_tags( $message, $user, $blog ) {
+    $replacements = [
+        //Confirmation url
+        '[confirmation-url]' => network_site_url( "login/" ),
+        //Username
+        '[user-username]' => $user->user_username,
+        //Email
+        '[user-email]' => $user->user_email,
+        //Website name
+        '[website-name]' => $blog,
+        //Website url
+        '[website-url]' => get_home_url(),
+    ];
+    $message = str_replace( array_keys( $replacements), array_values( $replacements), $message );
+    return $message;
+    
+}
 //Admin input
 function admin_change_email() {
     $template = [];
@@ -56,26 +98,7 @@ function admin_change_email() {
         if( isset($_POST['html']) && $_POST['html'] === 'on') {
             $template['message'] = $message;
         } else {
-            //Bold header
-            $message = str_replace( '[bold]', "<h1>", $message );
-            $message = str_replace( '[/bold]', "</h1>", $message );
-            //Semi header
-            $message = str_replace( '[semi]', '<h3>', $message );
-            $message = str_replace( '[/semi]', '</h3>', $message );
-            //Italic
-            $message = str_replace( '[it]', '<i>', $message );
-            $message = str_replace( '[/it]', '</i>', $message );
-            //Red
-            $message = str_replace( '[red]', '<p style="color:#CA0B00">', $message );
-            $message = str_replace( '[/red]', '</p>', $message );
-            //Green
-            $message = str_replace( '[gr]', '<p style="color:#4BCA81">', $message );
-            $message = str_replace( '[/gr]', '</p>', $message );
-            //Button
-            $message = str_replace( '[btn]', '<button style="min-height:40px;min-width:90px;border-radius:4px;background-color:#F0D500;border:none;color:black;">', $message );
-            $message = str_replace( '[/btn]', '</button>', $message );
-
-            $template['message'] = $message;
+            $template['message'] = de_replace_html( $message );
         }
     } else {
         WP_HTTP_Response::set_status( 422 );
@@ -107,20 +130,7 @@ function de_custom_email_send( $new_user_email, $user, $blog) {
         $new_user_email['subject'] = $de_email_template['subject'];
     }
     if( isset( $de_email_template['message'] ) ){
-        //REPLACEMENTS
-        $message = $de_email_template['message'];
-        //Confirmation url
-        $message = str_replace( '[confirmation-url]', network_site_url( "login/" ) . "\r\n\r\n" , $message );
-        //Username
-        $message = str_replace( '[user-username]', $user->user_login , $message );
-        //Email
-        $message = str_replace( '[user-email]', $user->user_email, $message );
-        //Website name
-        $message = str_replace( '[website-name]', $blog, $message );
-        //Website url
-        $message = str_replace( '[website-url]', get_home_url(), $message );
-
-        $new_user_email['message'] = $message;
+        $new_user_email['message'] = de_replace_user_tags( $de_email_template['message'], $user, $blog );
     } else {
         $new_user_email['message'] = 'Some fancy stuff';
     }
