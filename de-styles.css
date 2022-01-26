@@ -5,15 +5,15 @@
     margin-top: 2em;
     justify-content: space-between;
 }
-form {
+.de-admin-form {
     display: flex;
     flex-direction: column;
 }
-#html {
+.de-checkbox {
     height: 15px;
     width: 15px;
     border-radius: 1px;
 }
-#body {
+.de-texarea {
     white-space: pre-wrap;
 }
